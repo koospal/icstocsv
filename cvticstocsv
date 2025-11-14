@@ -1,4 +1,4 @@
-i#!/bin/bash
+#!/bin/bash
 
 icsfile=$1
 jugurl=$2
