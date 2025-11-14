@@ -1,0 +1,32 @@
+i#!/bin/bash
+
+icsfile=$1
+jugurl=$2
+
+# First step cvt dos 2 unix
+cat $icsfile|\
+sed -e "s/^ /xxx++xxx/g"|\
+sed -e "s/;VALUE=URI//g"|\
+awk -F"\r" '{printf "%syyy++yyy",$1}' |\
+sed -e "s/yyy++yyyxxx++xxx//g"|\
+sed -e "s/yyy++yyy/\n/g"|\
+sed -e "s/\\\n/ /g"|\
+sed -e "s/\\\//g"|\
+awk -F":" -v jugurl=$jugurl '{ \
+if (substr($1,1,7) == "DTSTART") str=$2;\
+if (substr($1,1,5) == "DTEND") end=$2;\
+if (substr($1,1,7) == "SUMMARY") sum=$2$3$4$5;\
+if (substr($1,1,8) == "LOCATION") loc=$2$3$4;\
+if ((substr($1,1,11) == "DESCRIPTION") && ($2 == "http"))url=$2":"$3;\
+if ((substr($1,1,11) == "DESCRIPTION") && ($2 == "https"))url=$2":"$3;\
+if ($1 == "URL") url=$2":"$3;\
+if ($1 == "ORGANIZER") org=$2":"$3;\
+if ($1 == "ATTACH") url=$2":"$3;\
+if ($1 == "END" && $2 == "VEVENT") \
+ { if (url=="") url=org;\
+   if (url=="") url=jugurl;\
+   printf "%s\t%s\t%s\t%s\t%s\n",str,end,sum,url,loc;\
+   url="";\
+ }\
+}'
+exit $?
